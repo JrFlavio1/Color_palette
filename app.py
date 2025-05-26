@@ -12,13 +12,21 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 def get_colors(image_path, num_colors=10):
     img = cv2.imread(image_path)
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    img = img.reshape((-1, 3))  # pixels only
+    img = img.reshape((-1, 3))  # Flatten the image to (pixels, 3)
 
     kmeans = KMeans(n_clusters=num_colors)
-    kmeans.fit(img)
-    colors = kmeans.cluster_centers_.astype(int)
+    labels = kmeans.fit_predict(img)
+    counts = np.bincount(labels)
 
-    return colors
+    # Sort colors by frequency
+    sorted_idx = np.argsort(counts)[::-1]
+    colors = kmeans.cluster_centers_.astype(int)[sorted_idx]
+    percentages = counts[sorted_idx] / counts.sum() * 100
+
+    hex_colors = ['#%02x%02x%02x' % tuple(c) for c in colors]
+    percents_rounded = [round(p, 2) for p in percentages]
+
+    return list(zip(hex_colors, percents_rounded))
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -28,10 +36,9 @@ def index():
         path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         img_file.save(path)
 
-        colors = get_colors(path)
-        hex_colors = ['#%02x%02x%02x' % tuple(c) for c in colors]
-
-        return render_template('result.html', colors=hex_colors, image=path)
+        color_data = get_colors(path)
+        
+        return render_template('result.html', color_data=color_data, image=path)
 
     return render_template('index.html')
 

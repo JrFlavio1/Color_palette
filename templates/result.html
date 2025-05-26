@@ -5,10 +5,25 @@
   <h1>Top 10 Colors</h1>
   <img src="{{ image }}" width="300"><br><br>
 
-  {% for color in colors %}
-    <div style="width: 100px; height: 100px; background-color: '{{ color }}'; display: inline-block;"></div>
-    <p>{{ color }}</p>
-  {% endfor %}
+    <style>
+        .bar {
+        height: 40px;
+        margin: 5px 0;
+        color: black;
+        font-weight: bold;
+        padding-left: 10px;
+        display: flex;
+        align-items: center;
+        border-radius: 6px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+    </style>
+
+    {% for color, percent in color_data %}
+        <div class="bar" style="width: '{{ percent }}'\%; background-color: '{{ color }}';">
+            {{ color }} – {{ percent }}%
+        </div>
+    {% endfor %}
 
   <br><a href="/">Try another image</a>
 </body>
